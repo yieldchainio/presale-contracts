@@ -39,5 +39,28 @@ describe("Presale", function () {
     const amount = ethers.utils.parseEther("100");
     await paidWithToken.connect(addr3).approve(presale.address, amount);
     await presale.connect(addr3).contribute(paidWithToken.address, amount);
+
+    await paidWithToken.connect(addr3).approve(presale.address, amount);
+    await expect(
+      presale.connect(addr3).contribute(addr1.address, amount)
+    ).to.be.revertedWith('UnapprovedToken("0x70997970C51812dc3A010C7d01b50e0d17dc79C8")')
+
+    const overMaxContrib = ethers.utils.parseEther("10000");
+    await paidWithToken.connect(addr3).approve(presale.address, overMaxContrib);
+    await expect(
+      presale.connect(addr3).contribute(paidWithToken.address, overMaxContrib)
+    ).to.be.revertedWith('OverMaxContribution('+overMaxContrib+')')
+
+    await presale.setMaxContribution(0)
+
+    const overHardCap = ethers.utils.parseEther("100000");
+    await paidWithToken.connect(addr3).approve(presale.address, overHardCap);
+    await expect(
+      presale.connect(addr3).contribute(paidWithToken.address, overHardCap)
+    ).to.be.revertedWith('OverHardCap('+amount.add(overHardCap)+')')
+
+    await expect(
+      presale.connect(addr3).contribute(paidWithToken.address, 0)
+    ).to.be.revertedWith('AmountZero()')
   });
 });

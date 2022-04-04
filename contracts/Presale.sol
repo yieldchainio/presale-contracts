@@ -64,7 +64,7 @@ contract Presale is ReentrancyGuard, Ownable {
 
     function setMaxContribution(uint256 max) external onlyOwner {
         if (max == 0) {
-            max = HARD_CAP;
+            max = type(uint256).max;
         }
 
         maxContribution = max;
