@@ -31,7 +31,7 @@ describe("Presale", function () {
     await presale.deployed();
 
     await presale.setApprovedTokens([paidWithToken.address], [true]);
-    await presale.setState(true);
+    await presale.setSaleOpen(true);
 
 
   });

@@ -5,14 +5,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-
-import "hardhat/console.sol";
-
 contract Presale is ReentrancyGuard, Ownable {
 
     uint256 public constant HARD_CAP = 30_000 ether; //$30k
 
-    bool public state = false;
+    bool public isOpen = false;
 
     address public beneficiary;
     address public oracle;
@@ -28,7 +25,7 @@ contract Presale is ReentrancyGuard, Ownable {
     event TokenState(address indexed token, bool state);
 
     error Closed();
-    error ZeroAddress();
+    error AddressZero();
     error ERC20TransferFailed();
     error AmountZero();
     error Unauthorized(address account);
@@ -41,21 +38,24 @@ contract Presale is ReentrancyGuard, Ownable {
         setOracle(oracle_);
     }
 
+    function failOnZeroAddress(address toCheck) internal pure {
+        if (toCheck == address(0)) revert AddressZero();
+    }
+
     function setBeneficiary(address account) public onlyOwner {
-        if(account == address(0)) revert ZeroAddress();
+        failOnZeroAddress(account);
 
         beneficiary = account;
     }
 
     function setOracle(address account) public onlyOwner {
-        if(account == address(0)) revert ZeroAddress();
-
+        failOnZeroAddress(account);
         oracle = account;
     }
 
     function setApprovedTokens(address[] memory tokens, bool[] memory approved) public onlyOwner {
         for(uint256 i = 0; i < tokens.length; i++) {
-            if (tokens[i] == address(0)) revert ZeroAddress();
+            failOnZeroAddress(tokens[i]);
             approvedTokens[tokens[i]] = approved[i];
 
             emit TokenState(tokens[i], approved[i]);
@@ -70,12 +70,12 @@ contract Presale is ReentrancyGuard, Ownable {
         maxContribution = max;
     }
     
-    function setState(bool newState) external onlyOracleOrOwner {
-        state = newState;
+    function setSaleOpen(bool newState) external onlyOracleOrOwner {
+        isOpen = newState;
     }
 
     function contribute(address token, uint256 amount) external nonReentrant {
-        if (!state) revert Closed();
+        if (!isOpen) revert Closed();
         if (!approvedTokens[token]) revert UnapprovedToken(token);
         if (amount == 0) revert AmountZero();
         if (amount > maxContribution) revert OverMaxContribution(amount);
