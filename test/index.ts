@@ -68,4 +68,19 @@ describe("Presale", function () {
       presale.connect(addr3).contribute(paidWithToken.address, 0)
     ).to.be.revertedWith('AmountZero()')
   });
+
+  it("Should allow withdrawal", async () => {
+    await paidWithToken.connect(addr3).transfer(presale.address, ethers.utils.parseEther("100"));
+    const preBalance = await paidWithToken.balanceOf(addr1.address);
+    console.log(preBalance)
+
+    await presale.withdraw(paidWithToken.address);
+
+    const postBalance = await paidWithToken.balanceOf(addr1.address)
+    console.log(postBalance)
+
+    expect(
+      preBalance.add(ethers.utils.parseEther("100"))
+    ).to.be.equal(postBalance)
+  });
 });

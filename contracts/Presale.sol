@@ -96,6 +96,16 @@ contract Presale is ReentrancyGuard, Ownable {
         emit Contribution(msg.sender, token, amount);
     }
 
+    function withdraw(IERC20 token) external onlyOwner {
+        failOnZeroAddress(address(token));
+
+        uint256 balance = token.balanceOf(address(this));
+
+        if (balance > 0) {
+            token.transfer(beneficiary, balance);
+        }
+    }
+
     modifier onlyOracleOrOwner() {
         if (msg.sender != oracle && msg.sender != owner()) revert Unauthorized(msg.sender);
         _;
