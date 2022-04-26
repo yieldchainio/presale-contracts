@@ -3,10 +3,8 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-import { time } from "console";
-import { ethers, run } from "hardhat";
-import { hrtime } from "process";
-import { Presale } from "../typechain/Presale";
+import { ethers } from "hardhat";
+import { TestToken } from "../typechain/TestToken";
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -17,17 +15,14 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Presale:any = await ethers.getContractFactory("Presale");
-  const presale:Presale = await Presale.deploy(process.env.BENEFICIARY!, process.env.ORACLE!);
+  const Token:any = await ethers.getContractFactory("TestToken");
 
-  await presale.deployed();
-  await presale.setSaleOpen(true);
-
-  console.log("Presale deployed to:", presale.address);
-
-  const tokens = process.env.TOKENS!.split(",")
-  await presale.setApprovedTokens(tokens, Array(tokens.length).fill(true))
-
+  const tokens = process.env.TOKEN_SYMBOL!.split(",")
+  for (let t of tokens) {
+    const token:TestToken = await Token.deploy(t, t, 100_000_000);
+    await token.deployed();
+    console.log(t + " deployed to:", token.address);
+  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

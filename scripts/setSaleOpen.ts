@@ -7,6 +7,7 @@ import { time } from "console";
 import { ethers, run } from "hardhat";
 import { hrtime } from "process";
 import { Presale } from "../typechain/Presale";
+import { Presale__factory } from "../typechain/factories/Presale__factory";
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -17,17 +18,9 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Presale:any = await ethers.getContractFactory("Presale");
-  const presale:Presale = await Presale.deploy(process.env.BENEFICIARY!, process.env.ORACLE!);
+  const presale:Presale = await Presale__factory.connect(process.env.CONTRACT!,  await ethers.getSigner("0x7bF9b4bB202735608f0DFfb2cbCBB49aD7d49dbC"))
 
-  await presale.deployed();
-  await presale.setSaleOpen(true);
-
-  console.log("Presale deployed to:", presale.address);
-
-  const tokens = process.env.TOKENS!.split(",")
-  await presale.setApprovedTokens(tokens, Array(tokens.length).fill(true))
-
+  await presale.setSaleOpen(process.env.STATE! == "true" ? true : false);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -49,7 +49,12 @@ describe("Presale", function () {
     await paidWithToken.connect(addr3).approve(presale.address, overMaxContrib);
     await expect(
       presale.connect(addr3).contribute(paidWithToken.address, overMaxContrib)
-    ).to.be.revertedWith('OverMaxContribution('+overMaxContrib+')')
+    ).to.be.revertedWith('OverMaxContribution()')
+
+    const underMinContrib = ethers.utils.parseEther("5");
+    await expect(
+      presale.connect(addr3).contribute(paidWithToken.address, underMinContrib)
+    ).to.be.revertedWith('UnderMinContribution()')
 
     await presale.setMaxContribution(0)
 

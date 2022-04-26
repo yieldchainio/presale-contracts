@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract Presale is ReentrancyGuard, Ownable {
 
-    uint256 public constant HARD_CAP = 30_000 ether; //$30k
+    uint256 public constant HARD_CAP = 40_000 ether; //$30k
 
     bool public isOpen = false;
 
@@ -15,10 +15,12 @@ contract Presale is ReentrancyGuard, Ownable {
     address public oracle;
 
     uint256 public maxContribution = 5_000 ether; //$5k
+    uint256 public minContribution = 10 ether;
     uint256 public contributed;
 
 
     mapping(address => uint256) public contributions;
+    address[] public contributors;
     mapping(address => bool) public approvedTokens;
 
     event Contribution(address indexed buyer, address indexed token, uint256 amount);
@@ -30,7 +32,8 @@ contract Presale is ReentrancyGuard, Ownable {
     error AmountZero();
     error Unauthorized(address account);
     error UnapprovedToken(address token);
-    error OverMaxContribution(uint256 amount);
+    error UnderMinContribution();
+    error OverMaxContribution();
     error OverHardCap(uint256 amount);
     
     constructor(address beneficiary_, address oracle_) {
@@ -78,10 +81,14 @@ contract Presale is ReentrancyGuard, Ownable {
         if (!isOpen) revert Closed();
         if (!approvedTokens[token]) revert UnapprovedToken(token);
         if (amount == 0) revert AmountZero();
-        if (amount > maxContribution) revert OverMaxContribution(amount);
+        if (amount < minContribution) revert UnderMinContribution();
+        if (amount > maxContribution) revert OverMaxContribution();
         if (amount + contributed > HARD_CAP) revert OverHardCap(amount + contributed);
 
         contributed += amount;
+        if(contributions[msg.sender] == 0) {
+            contributors.push(msg.sender);
+        }
         contributions[msg.sender] += amount;
 
         IERC20(token).transferFrom(msg.sender, beneficiary, amount);

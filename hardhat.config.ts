@@ -39,11 +39,24 @@ const config: HardhatUserConfig = {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [], 
+    },
+    avaxtestnet: {
+      url: "https://api.avax-test.network/ext/bc/C/rpc",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    ftmtestnet: {
+      url: "https://rpc.testnet.fantom.network/",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     }
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: "USD",
+    gasPriceApi: "https://api.bscscan.com/api?module=proxy&action=eth_gasPrice",
+    coinmarketcap: process.env.CMC_KEY,
+    token: "BNB"
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
