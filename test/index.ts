@@ -72,15 +72,24 @@ describe("Presale", function () {
   it("Should allow withdrawal", async () => {
     await paidWithToken.connect(addr3).transfer(presale.address, ethers.utils.parseEther("100"));
     const preBalance = await paidWithToken.balanceOf(addr1.address);
-    console.log(preBalance)
 
     await presale.withdraw(paidWithToken.address);
 
     const postBalance = await paidWithToken.balanceOf(addr1.address)
-    console.log(postBalance)
 
     expect(
       preBalance.add(ethers.utils.parseEther("100"))
     ).to.be.equal(postBalance)
   });
+
+  it("Should not allow to send ETH to contract", async () => {
+    const tx = {
+      to: presale.address,
+      value: ethers.utils.parseEther("1")
+    }
+
+    await expect(
+      owner.sendTransaction(tx)
+    ).to.be.revertedWith("")
+  })
 });

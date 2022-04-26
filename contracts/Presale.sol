@@ -41,21 +41,38 @@ contract Presale is ReentrancyGuard, Ownable {
         setOracle(oracle_);
     }
 
+    /**
+    * @notice Revert if given addr is 0x0...
+    * @param toCheck address to check
+    */
     function failOnZeroAddress(address toCheck) internal pure {
         if (toCheck == address(0)) revert AddressZero();
     }
 
+    /**
+    * @notice Configures the beneficiary for the presale
+    * @param account beneficiary address
+    */
     function setBeneficiary(address account) public onlyOwner {
         failOnZeroAddress(account);
 
         beneficiary = account;
     }
 
+    /**
+    * @notice Set oracle address
+    * @param account oracle address
+    */
     function setOracle(address account) public onlyOwner {
         failOnZeroAddress(account);
         oracle = account;
     }
 
+    /**
+    * @notice Allows configuring tokens accepted for presale
+    * @param tokens list of tokens to configure
+    * @param approved bool representing if the token should be allowed
+    */
     function setApprovedTokens(address[] memory tokens, bool[] memory approved) public onlyOwner {
         for(uint256 i = 0; i < tokens.length; i++) {
             failOnZeroAddress(tokens[i]);
@@ -65,6 +82,10 @@ contract Presale is ReentrancyGuard, Ownable {
         }
     }
 
+    /**
+    * @notice Set maximal contribution per address
+    * @param max maximum contribution
+    */
     function setMaxContribution(uint256 max) external onlyOwner {
         if (max == 0) {
             max = type(uint256).max;
@@ -73,10 +94,19 @@ contract Presale is ReentrancyGuard, Ownable {
         maxContribution = max;
     }
     
+    /**
+    * @notice Configures whether the presale is open
+    * @param newState true/false based on if the sale is open or not
+    */
     function setSaleOpen(bool newState) external onlyOracleOrOwner {
         isOpen = newState;
     }
 
+    /**
+    * @notice Allows users to contribute to presale
+    * @param token address of token user is using to contribute
+    * @param amount amount to contribute
+    */
     function contribute(address token, uint256 amount) external nonReentrant {
         if (!isOpen) revert Closed();
         if (!approvedTokens[token]) revert UnapprovedToken(token);
@@ -96,6 +126,10 @@ contract Presale is ReentrancyGuard, Ownable {
         emit Contribution(msg.sender, token, amount);
     }
 
+    /**
+    * @notice Allows owner to forward any tokens on contract to beneficiary
+    * @param token token to withdraw
+    */
     function withdraw(IERC20 token) external onlyOwner {
         failOnZeroAddress(address(token));
 
