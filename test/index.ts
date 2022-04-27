@@ -24,7 +24,7 @@ describe("Presale", function () {
     PaidWithToken = await ethers.getContractFactory("TestToken");
     Presale = await ethers.getContractFactory("Presale");
 
-    paidWithToken = await PaidWithToken.connect(addr3).deploy("Paid With Token", "PWT", 100_000_000);
+    paidWithToken = await PaidWithToken.connect(addr3).deploy("Paid With Token", "PWT", 100_000_000, 18);
 
     presale = await Presale.deploy(addr1.address, addr2.address);
 
@@ -91,5 +91,23 @@ describe("Presale", function () {
     await expect(
       owner.sendTransaction(tx)
     ).to.be.revertedWith("")
+  })
+
+  it("Should allow various decimals for the token", async () => {
+    const token = await PaidWithToken.connect(addr3).deploy("Paid With Token", "PWT", 100_000_000, 6);
+
+    await presale.setApprovedTokens([token.address], [true]);
+
+    const amount = ethers.utils.parseUnits("100", 6);
+    await token.connect(addr3).approve(presale.address, amount);
+    await presale.connect(addr3).contribute(token.address, amount);
+
+    const contributed = await presale.contributed();
+
+    expect(
+      contributed
+    ).to.be.equal(ethers.utils.parseEther("100"))
+
+
   })
 });
