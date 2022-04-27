@@ -1,12 +1,13 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./IERC20Decimals.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract Presale is ReentrancyGuard, Ownable {
 
+    uint256 public constant MULTIPLIER = 10**18;
     uint256 public constant HARD_CAP = 40_000 ether; //$30k
 
     bool public isOpen = false;
@@ -23,7 +24,7 @@ contract Presale is ReentrancyGuard, Ownable {
     address[] public contributors;
     mapping(address => bool) public approvedTokens;
 
-    event Contribution(address indexed buyer, address indexed token, uint256 amount);
+    event Contribution(address indexed buyer, address indexed token, uint256 normalized, uint256 amount);
     event TokenState(address indexed token, bool state);
 
     error Closed();
@@ -111,26 +112,29 @@ contract Presale is ReentrancyGuard, Ownable {
         if (!isOpen) revert Closed();
         if (!approvedTokens[token]) revert UnapprovedToken(token);
         if (amount == 0) revert AmountZero();
-        if (amount < minContribution) revert UnderMinContribution();
-        if (amount > maxContribution) revert OverMaxContribution();
-        if (amount + contributed > HARD_CAP) revert OverHardCap(amount + contributed);
 
-        contributed += amount;
+        uint256 normalized = (amount * MULTIPLIER) / 10**IERC20Decimals(token).decimals();
+
+        if (normalized < minContribution) revert UnderMinContribution();
+        if (normalized > maxContribution) revert OverMaxContribution();
+        if (normalized + contributed > HARD_CAP) revert OverHardCap(amount + contributed);
+
+        contributed += normalized;
         if(contributions[msg.sender] == 0) {
             contributors.push(msg.sender);
         }
-        contributions[msg.sender] += amount;
+        contributions[msg.sender] += normalized;
 
-        IERC20(token).transferFrom(msg.sender, beneficiary, amount);
+        IERC20Decimals(token).transferFrom(msg.sender, beneficiary, amount);
 
-        emit Contribution(msg.sender, token, amount);
+        emit Contribution(msg.sender, token, normalized, amount);
     }
 
     /**
     * @notice Allows owner to forward any tokens on contract to beneficiary
     * @param token token to withdraw
     */
-    function withdraw(IERC20 token) external onlyOwner {
+    function withdraw(IERC20Decimals token) external onlyOwner {
         failOnZeroAddress(address(token));
 
         uint256 balance = token.balanceOf(address(this));

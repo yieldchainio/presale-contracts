@@ -21,12 +21,13 @@ async function main() {
   const presale:Presale = await Presale.deploy(process.env.BENEFICIARY!, process.env.ORACLE!);
 
   await presale.deployed();
-  await presale.setSaleOpen(true);
+  //await presale.setSaleOpen(true);
 
   console.log("Presale deployed to:", presale.address);
+  console.log("Presale params: ", process.env.BENEFICIARY!, process.env.ORACLE!)
 
-  const tokens = process.env.TOKENS!.split(",")
-  await presale.setApprovedTokens(tokens, Array(tokens.length).fill(true))
+  //const tokens = process.env.TOKENS!.split(",")
+  //await presale.setApprovedTokens(tokens, Array(tokens.length).fill(true))
 
 }
 

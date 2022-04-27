@@ -18,7 +18,7 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const presale:Presale = await Presale__factory.connect(process.env.CONTRACT!,  await ethers.getSigner("0x7bF9b4bB202735608f0DFfb2cbCBB49aD7d49dbC"))
+  const presale:Presale = await Presale__factory.connect(process.env.CONTRACT!,  await ethers.getSigner("0x6A0A02030B8A7307bd700455dCd6F1880Ad55324"))
 
   await presale.setSaleOpen(process.env.STATE! == "true" ? true : false);
 }
